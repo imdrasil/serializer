@@ -1,0 +1,9 @@
+name: serializer
+version: 0.1.0
+
+authors:
+  - Roman Kalnytskyi <moranibaca@gmail.com>
+
+crystal: 0.28.0
+
+license: MIT

@@ -1,0 +1,71 @@
+require "../spec_helper.cr"
+
+class AddressWithMetaSerializer < Serializer::Base(Address)
+  attributes :street
+
+  def self.meta(*opts)
+    { :page => 0 }
+  end
+end
+
+describe Serializer::Base do
+  single_serializer = ModelSerializer.new(Model.new)
+
+  describe ".new" do
+    context "with object" do
+      it { ModelSerializer.new(Model.new) }
+    end
+
+    context "with collection" do
+      it { ModelSerializer.new([Model.new]) }
+    end
+
+    context "with nil" do
+      it { ModelSerializer.new(nil) }
+    end
+  end
+
+  describe "#serialize" do
+    describe "single object" do
+      it { single_serializer.serialize.should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12}}") }
+    end
+
+    describe "collection" do
+      it { ModelSerializer.new([Model.new]).serialize.should eq("{\"data\":[{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12}]}") }
+    end
+
+    describe "nil" do
+      it { ModelSerializer.new(nil).serialize.should eq(%({"data":null})) }
+    end
+
+    describe "inheritance" do
+      it do
+        InheritedSerializer.new(Model.new).serialize(except: %i(name), includes: %i(children))
+          .should eq("{\"data\":{\"Title\":\"asd\",\"own_field\":12,\"inherited_field\":1.23,\"children\":}}")
+      end
+    end
+
+    context "with except" do
+      it { single_serializer.serialize(except: %i(name)).should_not contain(%("name":)) }
+    end
+
+    context "with includes" do
+      it { single_serializer.serialize(includes: %i(children)).should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12,\"children\":}}") }
+      it do
+        single_serializer.serialize(includes: { :children => [:sub], :friends => { :address => nil, :dipper => [:sub] } })
+          .should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12,\"children\":,\"friends\":[{\"age\":60,\"address\":{\"street\":\"some street\"},\"dipper\":{\"age\":100,\"sub\":null}}]}}")
+      end
+    end
+
+    context "with options" do
+      it { single_serializer.serialize(opts: { :test => true }).should_not contain(%("Title")) }
+    end
+
+    context "with meta" do
+      it do
+        single_serializer.serialize(meta: { :page => 0 })
+          .should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12},\"meta\":{\"page\":0}}")
+      end
+    end
+  end
+end

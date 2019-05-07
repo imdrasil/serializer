@@ -41,7 +41,7 @@ describe Serializer::Base do
     describe "inheritance" do
       it do
         InheritedSerializer.new(Model.new).serialize(except: %i(name), includes: %i(children))
-          .should eq("{\"data\":{\"Title\":\"asd\",\"own_field\":12,\"inherited_field\":1.23,\"children\":}}")
+          .should eq("{\"data\":{\"Title\":\"asd\",\"own_field\":12,\"inherited_field\":1.23,\"children\":[]}}")
       end
     end
 
@@ -50,10 +50,10 @@ describe Serializer::Base do
     end
 
     context "with includes" do
-      it { single_serializer.serialize(includes: %i(children)).should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12,\"children\":}}") }
+      it { single_serializer.serialize(includes: %i(children)).should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12,\"children\":[]}}") }
       it do
         single_serializer.serialize(includes: { :children => [:sub], :friends => { :address => nil, :dipper => [:sub] } })
-          .should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12,\"children\":,\"friends\":[{\"age\":60,\"address\":{\"street\":\"some street\"},\"dipper\":{\"age\":100,\"sub\":null}}]}}")
+          .should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12,\"children\":[],\"friends\":[{\"age\":60,\"address\":{\"street\":\"some street\"},\"dipper\":{\"age\":100,\"sub\":null}}]}}")
       end
     end
 
@@ -65,6 +65,12 @@ describe Serializer::Base do
       it do
         single_serializer.serialize(meta: { :page => 0 })
           .should eq("{\"data\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12},\"meta\":{\"page\":0}}")
+      end
+
+      context "with default meta" do
+        it { AddressWithMetaSerializer.new(Address.new).serialize.should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":0}}") }
+        it { AddressWithMetaSerializer.new(Address.new).serialize(meta: { :total => 0 }).should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":0,\"total\":0}}") }
+        it { AddressWithMetaSerializer.new(Address.new).serialize(meta: { :page => 3 }).should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":3}}") }
       end
     end
   end

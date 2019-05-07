@@ -1,105 +1,86 @@
+require "./dsl"
+require "./serializable"
+
 module Serializer
-  # Contains DSL required to define required fields and relations for serialization.
-  module DSL
-    # TBA
-    macro attributes(*names)
-      {%
-        names.reduce(ATTRIBUTES) do |hash, name|
-          hash[name] = { key: name, if: nil }
-          hash
-        end
-      %}
-    end
-
-    # TBA
-    macro attribute(name, key = nil, if if_proc = nil)
-      {% ATTRIBUTES[name] = { key: key || name, if: if_proc } %}
-    end
-
-    # TBA
-    macro has_many(name, serializer, key = nil)
-      {% RELATIONS[name] = { serializer: serializer, key: key || name, type: :has_many } %}
-    end
-
-    # TBA
-    macro has_one(name, serializer, key = nil)
-      {% RELATIONS[name] = { serializer: serializer, key: key || name, type: :has_one } %}
-    end
-
-    # TBA
-    macro belongs_to(name, serializer, key = nil)
-      {% RELATIONS[name] = { serializer: serializer, key: key || name, type: :belongs_to } %}
-    end
-  end
-
-  # Abstract serializer static methods.
-  module AbstractClassMethods
-    # Returns json root key.
-    abstract def root_key
-
-    # Returns default meta options.
-    #
-    # If this is empty and no additional meta-options are given - `meta` key is avoided.
-    abstract def meta(opts)
-  end
-
-  # Base abstract superclass for serialization.
-  abstract class Interface
-    extend AbstractClassMethods
-
-    # Serializes *target*'s attributes to *io*.
-    abstract def serialize_attributes(target, io, except, opts)
-
-    # Serializes *target*'s relations to *io*.
-    abstract def serialize_relations(target, fields_count, io, includes, opts)
-
-    # TBA
-    def serialize(except = %i(), includes = %i(), opts : Hash? = nil, meta : Hash? = nil)
-      String.build do |io|
-        serialize(io, except, includes, opts, meta)
-      end
-    end
-
-    def serialize(io : IO, except = %i(), includes = [] of String, opts : Hash? = nil, meta : Hash? = nil)
-      render_root(io, except, includes, opts, meta)
-    end
-
-    # :nodoc:
-    def _serialize(object : Nil, io : IO, except : Array, includes : Array | Hash, opts : Hash?)
-      io << "null"
-    end
-
-    # Returns whether *includes* has a mention for relation *name*.
-    protected def has_relation?(name, includes : Array)
-      includes.includes?(name)
-    end
-
-    protected def has_relation?(name, includes : Hash)
-      includes.has_key?(name)
-    end
-
-    # Returns nested inclusions for relation *name*.
-    protected def nested_includes(name, includes : Array)
-      %i()
-    end
-
-    protected def nested_includes(name, includes : Hash)
-      includes[name] || %i()
-    end
-
-    def self.root_key
-      "data"
-    end
-
-    def self.meta(_opts)
-      {} of Symbol => JSON::Any::Type
-    end
-  end
-
   # Base serialization superclass.
   #
-  # TBA
-  abstract class Base(T) < Interface
+  # ```
+  # class AddressSerializer < Serializer::Base(Address)
+  #   attributes :street
+  # end
+  #
+  # class ChildSerializer < Serializer::Base(Child)
+  #   attribute :age
+  #
+  #   has_one :address, AddressSerializer
+  #   has_one :dipper, ChildSerializer
+  # end
+  #
+  # class ModelSerializer < Serializer::Base(Model)
+  #   attribute :name
+  #   attribute :own_field
+  #
+  #   has_many :children, ChildSerializer
+  #
+  #   def own_field
+  #     12
+  #   end
+  # end
+  #
+  # ModelSerializer.new(object).serialize(
+  #   except: [:own_field],
+  #   includes: {
+  #     :children => { :address => nil, :dipper => [:address] }
+  #   },
+  #   meta: { :page => 0 }
+  # )
+  # ```
+  #
+  # Example above produces next output (this one is made to be readable -
+  # real one has no newlines and indentations):
+  #
+  # ```json
+  # {
+  #   "data":{
+  #     "name":"test",
+  #     "children":[
+  #       {
+  #         "age":60,
+  #         "address":null,
+  #         "dipper":{
+  #           "age":20,
+  #           "address":{
+  #             "street":"some street"
+  #           }
+  #         }
+  #       }
+  #     ]
+  #   },
+  #   "meta":{
+  #     "page":0
+  #   }
+  # }
+  # ```
+  #
+  # For a details about DSL specification or serialization API see `DSL` and `Serializable`.
+  #
+  # ## Inheritance
+  #
+  # You can DRY your serializers by inheritance - just add required attributes and/or associations in
+  # the subclasses.
+  #
+  # ```
+  # class UserSerializer < Serializer::Base(User)
+  #   attributes :name, :age
+  # end
+  #
+  # class FullUserSerializer < UserSerializer
+  #   attributes :email, :created_at
+  #
+  #   has_many :identities, IdentitySerializer
+  # end
+  # ```
+  abstract class Base(T) < Serializable
     include DSL
 
     # :nodoc:
@@ -183,21 +164,25 @@ module Serializer
 
     # :nodoc:
     def _serialize(collection : Array(T), io : IO, except : Array, includes : Array | Hash, opts : Hash?)
+      io << "["
       collection.each_with_index do |object, index|
-        io << "["
         io << "," if index != 0
         _serialize(object, io, except, includes, opts)
-        io << "]"
       end
+      io << "]"
     end
 
     # :nodoc:
     def render_root(io : IO, except : Array, includes : Array | Hash, opts : Hash?, meta)
       io << "{\"" << self.class.root_key << "\":"
       _serialize(@target, io, except, includes, opts)
+      default_meta = self.class.meta(opts)
       unless meta.nil?
-        io << %(,"meta":) << meta.to_json
+        meta.each do |key, value|
+          default_meta[key] = value
+        end
       end
+      io << %(,"meta":) << default_meta.to_json if default_meta.any?
       io << "}"
     end
   end

@@ -1,6 +1,6 @@
 # Serializer
 
-Serializer is simple JSON serialization library for your object structure. Unlike core `JSON` module's functionality this library only converts to JSON string (one direction) but at the same time provides some free space for maneuvers, precise and flexible configuration.
+**Serializer** is a simple JSON serialization library for your object structure. Unlike core `JSON` module's functionality this library only covers serializing objects to JSON without parsing data back. At the same time it provides some free space for maneuvers, precise and flexible configuration WHAT, HOW and WHEN should be rendered.
 
 `Serializer::Base` only ~11% slower than `JSON::Serializable`
 
@@ -32,7 +32,7 @@ and at the same time provides next functionality:
 
 ## Usage
 
-Let's assume we have next classes relationship
+Let's assume we have next resources relationship
 
 ```crystal
 class Parent
@@ -61,7 +61,7 @@ class Address
 end
 ```
 
-We can define serializers next way:
+To be able to serialize data we need to define serializers for each resource:
 
 ```crystal
 class AddressSerializer < Serializer::Base(Address)
@@ -94,19 +94,104 @@ class ModelSerializer < Serializer::Base(Model)
 end
 ```
 
-To invoke serialization:
+### Attributes
+
+To specify what should be serialized `attributes` and `attribute` macros are used. `attributes` allows to pass a list of attribute names which maps one-to-one with JSON keys
 
 ```crystal
-model = Model.new(
-  friends: [
-    Child.new(
-      60,
-      Child.new(20, address: Address.new)
-    )
-  ],
-  parents: [] of Child
-)
+class PostSerializer
+  attributes :title, body
+end
+```
 
+Above serializer will produce next output `{"title": "Some title", "body": "Post body"}`. You can precisely configure every field using `attribute` macro. It allows to specify `key` name to be used in JSON and `if` predicate method name to be used to check whether field should be serialized.
+
+```crystal
+class ModelSerializer < Serializer::Base(Model)
+  attribute :title, :Title, if: :test_title
+
+  def test_title(object, options)
+    options.nil? || !options[:test]?
+  end
+end
+```
+
+Above serializer will produce next output `{"Title": "Some title"}` if serializer has got options without `test` set to `true`.
+
+If serializer has a method with the same name as specified field - it is used.
+
+```crystal
+class ModelSerializer < Serializer::Base(Model)
+  attribute :name
+
+  def name
+    "StaticName"
+  end
+end
+```
+
+### Relations
+
+If resource has underlying resources to serialize they can be specified with `has_one`, `belongs_to` and `has_many` macro methods that describes relation type between them (one-to-one, one-to-any and one-to-many).
+
+```crystal
+class ModelSerializer < Serializer::Base(Model)
+  has_many :friends, ChildSerializer
+end
+```
+
+They also accepts `key` option. There is no `if` support because associations by default isn't rendered.
+
+### Meta
+
+Resource meta data can be defined at it's level - overriding `.meta` method.
+
+```crystal
+class ModelSerializer < Serializer::Base(Model)
+  def self.meta(options)
+    {
+      :page => options[:page]
+    }
+  end
+end
+```
+
+Method return value should be `Hash(Symbol, JSON::Any::Type | Int32)`. Also any additional meta attributes may be defined at serialization moment (calling `#serialize` method).
+
+### Inheritance
+
+If you have complicated domain object relation structure - you can easily present serialization logic using inheritance:
+
+```crystal
+class ModelSerializer < Serializer::Base(Model)
+  attribute :name
+end
+
+class InheritedSerializer < ModelSerializer
+  attribute :inherited_field
+
+  def inherited_field
+    1.23
+  end
+end
+```
+
+### Rendering
+
+To render resource create an instance of required serializer and call `#serialize`:
+
+```crystal
+ModelSerializer.new(model).serialize
+```
+
+It accepts several optional arguments:
+
+* `except` - array of fields that should not be serialized;
+* `includes` - relations that should be included into serialized string;
+* `opts` - options that will be passed to *if* predicate methods and `.meta`;
+* `meta` - meta attributes to be added under `"meta"` key at root level; it is merged into default meta attributes returned by `.meta`.
+
+```crystal
 ModelSerializer.new(model).serialize(
   except: [:own_field],
   includes: {
@@ -117,7 +202,9 @@ ModelSerializer.new(model).serialize(
 )
 ```
 
-Which results in:
+`includes` should be array or hash (any levels deep) which elements presents relation names to be serialized. `nil` value may be used in hashes as a value to define that nothing additional should be serialized for a relation named by corresponding key.
+
+Example above results in:
 
 ```json
 {
@@ -146,7 +233,21 @@ Which results in:
 
 > This is pretty JSON version - actual result contains no spaces and newlines.
 
-For API details see [documentation](https://imdrasil.github.io/serializer/latest/Serializer).
+#### Root key
+
+Serialized JSON root level includes `data` key (and optional `meta` key). It can be renamed to anything by defining `.root_key`
+
+```crystal
+class ModelSerializer < Serializer::Base(Model)
+  def self.root_key
+    "model"
+  end
+
+  attribute :name
+end
+```
+
+For API details see [documentation](https://imdrasil.github.io/serializer/latest/serializer).
 
 ## Contributing
 

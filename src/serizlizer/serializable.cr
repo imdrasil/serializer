@@ -90,7 +90,7 @@ module Serializer
     end
 
     # :nodoc:
-    def serialize(io : IO, except = %i(), includes = [] of String, opts : Hash? = nil, meta : Hash? = nil)
+    def serialize(io : IO, except = %i(), includes = %i(), opts : Hash? = nil, meta : Hash? = nil)
       render_root(io, except, includes, opts, meta)
     end
 

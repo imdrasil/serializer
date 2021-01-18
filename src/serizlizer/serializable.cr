@@ -9,7 +9,7 @@ module Serializer
       # Returns json root key.
       #
       # Default data root key is `"data"`. This behavior can be override by overriding this method.
-      # It can be omited be setting nil, but any meta-options sent will be ignored.
+      # It can be omited by setting nil, but any meta-options and `meta` keys will be ignored.
       # ```
       # class UserSerializer < Serializer::Base(User)
       #   def self.root_key

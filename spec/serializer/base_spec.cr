@@ -8,6 +8,12 @@ class AddressWithMetaSerializer < Serializer::Base(Address)
   end
 end
 
+class ModelWithoutRootSerializer < ModelSerializer
+  def self.root_key
+    nil
+  end
+end
+
 describe Serializer::Base do
   single_serializer = ModelSerializer.new(Model.new)
 
@@ -71,6 +77,12 @@ describe Serializer::Base do
         it { AddressWithMetaSerializer.new(Address.new).serialize.should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":0}}") }
         it { AddressWithMetaSerializer.new(Address.new).serialize(meta: { :total => 0 }).should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":0,\"total\":0}}") }
         it { AddressWithMetaSerializer.new(Address.new).serialize(meta: { :page => 3 }).should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":3}}") }
+      end
+    end
+
+    context "without root" do
+      it do
+        ModelWithoutRootSerializer.new(Model.new).serialize.should eq("{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12}")
       end
     end
   end

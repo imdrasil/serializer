@@ -9,7 +9,7 @@ module Serializer
       # Returns json root key.
       #
       # Default data root key is `"data"`. This behavior can be override by overriding this method.
-      #
+      # It can be omited by setting nil, but any meta-options and `meta` keys will be ignored.
       # ```
       # class UserSerializer < Serializer::Base(User)
       #   def self.root_key
@@ -35,7 +35,7 @@ module Serializer
       # ```
       abstract def meta(opts) : Hash(Symbol, MetaAny)
 
-      def root_key
+      def root_key : String | Nil
         "data"
       end
 
@@ -91,7 +91,11 @@ module Serializer
 
     # :nodoc:
     def serialize(io : IO, except = %i(), includes = %i(), opts : Hash? = nil, meta : Hash? = nil)
-      render_root(io, except, includes, opts, meta)
+      if self.class.root_key.nil?
+        _serialize(@target, io, except, includes, opts)
+      else
+        render_root(io, except, includes, opts, meta)
+      end
     end
 
     # :nodoc:

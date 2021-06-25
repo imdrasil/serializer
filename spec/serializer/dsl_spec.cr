@@ -16,7 +16,7 @@ describe Serializer::DSL do
       it do
         serializer = ModelSerializer.new(Model.new)
         serializer.serialize.should contain(%(Title))
-        serializer.serialize(opts: { :test => true }).should_not contain(%(Title))
+        serializer.serialize(opts: {:test => true}).should_not contain(%(Title))
       end
     end
   end

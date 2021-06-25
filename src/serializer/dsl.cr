@@ -25,7 +25,7 @@ module Serializer
     macro attributes(*names)
       {%
         names.reduce(ATTRIBUTES) do |hash, name|
-          hash[name] = { key: name, if: nil }
+          hash[name] = {key: name, if: nil}
           hash
         end
       %}
@@ -59,7 +59,7 @@ module Serializer
     # end
     # ```
     macro attribute(name, key = nil, if if_proc = nil)
-      {% ATTRIBUTES[name] = { key: key || name, if: if_proc } %}
+      {% ATTRIBUTES[name] = {key: key || name, if: if_proc} %}
     end
 
     # Defines `one-to-many` *name* association that is serialized by *serializer*.
@@ -79,21 +79,21 @@ module Serializer
     # By default all associations are not serialized. To make an association being serialized
     # it should be explicitly specified in *includes* argument of `Base#serialize` method.
     macro has_many(name, serializer, key = nil)
-      {% RELATIONS[name] = { serializer: serializer, key: key || name, type: :has_many } %}
+      {% RELATIONS[name] = {serializer: serializer, key: key || name, type: :has_many} %}
     end
 
     # Defines `one-to-one` *name* association that is serialized by *serializer*.
     #
     # For more details see `.has_many`.
     macro has_one(name, serializer, key = nil)
-      {% RELATIONS[name] = { serializer: serializer, key: key || name, type: :has_one } %}
+      {% RELATIONS[name] = {serializer: serializer, key: key || name, type: :has_one} %}
     end
 
     # Defines `one-to-any` *name* association that is serialized by *serializer*.
     #
     # For more details see `.has_many`.
     macro belongs_to(name, serializer, key = nil)
-      {% RELATIONS[name] = { serializer: serializer, key: key || name, type: :belongs_to } %}
+      {% RELATIONS[name] = {serializer: serializer, key: key || name, type: :belongs_to} %}
     end
   end
 end

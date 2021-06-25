@@ -28,7 +28,7 @@ module Serializer
       # class UserSerializer < Serializer::Base(User)
       #   def self.meta(opts)
       #     {
-      #       :status => "ok"
+      #       :status => "ok",
       #     } of Symbol => Serializer::MetaAny
       #   end
       # end
@@ -66,9 +66,9 @@ module Serializer
     # ModelSerializer.new(object).serialize(
     #   except: [:own_field],
     #   includes: {
-    #     :children => { :address => nil, :dipper => [:address] }
+    #     :children => {:address => nil, :dipper => [:address]},
     #   },
-    #   meta: { :page => 0 }
+    #   meta: {:page => 0}
     # )
     # ```
     #

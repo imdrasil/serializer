@@ -30,9 +30,9 @@ module Serializer
   # ModelSerializer.new(object).serialize(
   #   except: [:own_field],
   #   includes: {
-  #     :children => { :address => nil, :dipper => [:address] }
+  #     :children => {:address => nil, :dipper => [:address]},
   #   },
-  #   meta: { :page => 0 }
+  #   meta: {:page => 0}
   # )
   # ```
   #
@@ -85,10 +85,15 @@ module Serializer
 
     # :nodoc:
     macro define_serialization
-      # :nodoc:
-      ATTRIBUTES = {} of Nil => Nil
-      # :nodoc:
-      RELATIONS = {} of Nil => Nil
+      {% if !@type.has_constant?("ATTRIBUTES") %}
+        # :nodoc:
+        ATTRIBUTES = {} of Nil => Nil
+      {% end %}
+
+      {% if !@type.has_constant?("RELATIONS") %}
+        # :nodoc:
+        RELATIONS = {} of Nil => Nil
+      {% end %}
 
       macro finished
         {% verbatim do %}
@@ -182,7 +187,7 @@ module Serializer
           default_meta[key] = value
         end
       end
-      io << %(,"meta":) << default_meta.to_json if default_meta.any?
+      io << %(,"meta":) << default_meta.to_json unless default_meta.empty?
       io << "}"
     end
   end

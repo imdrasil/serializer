@@ -1,6 +1,6 @@
 require "json"
-require "./serizlizer/base"
+require "./serializer/base"
 
 module Serializer
-  VERSION = "0.1.0"
+  VERSION = "0.2.0"
 end

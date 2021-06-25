@@ -4,6 +4,7 @@ require "../src/serializer"
 # ===============
 # ==== Models
 # ===============
+
 class Model
   property name, title,
     children : Array(Child) = [] of Child

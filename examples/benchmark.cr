@@ -110,7 +110,7 @@ class CoreRootSerializer
 end
 
 model = Model.new(friends: [Child.new(60, Child.new(20, address: Address.new))], parents: [] of Child)
-nesting = { :children => [:sub], :friends => { :address => nil, :dipper => [:sub] } }
+nesting = {:children => [:sub], :friends => {:address => nil, :dipper => [:sub]}}
 
 Benchmark.ips do |x|
   x.report("Serializer") { ModelSerializer.new(model).serialize(includes: nesting) }

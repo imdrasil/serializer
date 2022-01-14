@@ -164,10 +164,12 @@ module Serializer
     # :nodoc:
     def key_transform(string, opts)
       # not the best code
-      if opts && opts.has_key?(:case)
+      if opts && opts.has_key?(:key_transform)
         case opts[:case]
-        when :camelcase
+        when :camelcase_down
           string.camelcase(lower: true)
+        when :camelcase_up
+          string.camelcase
         when :upcase
           string.upcase
         when :downcase

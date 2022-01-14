@@ -58,7 +58,7 @@ module Serializer
     #
     # * *except* - array of fields should be excluded from serialization;
     # * *includes* - definition of relation that should be included into serialized string;
-    # * *opts* - options that will be passed to methods defined for *if* attribute options and `.meta`;
+    # * *opts* - options that will be passed to methods defined for *if* attribute options, key transform and `.meta`;
     # * *meta* - meta attributes to be added under `"meta"` key at root level; it is merge into default
     # meta attributes returned by `.meta`.
     #
@@ -68,10 +68,11 @@ module Serializer
     #   includes: {
     #     :children => {:address => nil, :dipper => [:address]},
     #   },
-    #   meta: {:page => 0}
+    #   meta: {:page => 0},
+    #   opts: { :key_transform => :camelcase_up }
     # )
     # ```
-    #
+    # *key_transform* can either be :upcase, :downcase, :underscore, :camelcase_down or :camelcase_up
     # ## Includes
     #
     # *includes* option accepts `Array` or `Hash` values. To define just a list of association of target object - just pass an array:

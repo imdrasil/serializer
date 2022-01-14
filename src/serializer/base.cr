@@ -167,15 +167,15 @@ module Serializer
       # not the best code
       if opts && opts.has_key?(:key_transform)
         case opts[:key_transform]
-        when :camelcase_down
+        when "camelcase_down"
           string.camelcase(lower: true)
-        when :camelcase_up
+        when "camelcase_up"
           string.camelcase
-        when :upcase
+        when "upcase"
           string.upcase
-        when :downcase
+        when "downcase"
           string.downcase
-        when :underscore
+        when "underscore"
           string.underscore
         else
           string

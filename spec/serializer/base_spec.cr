@@ -65,11 +65,11 @@ describe Serializer::Base do
 
     context "with options" do
       it { single_serializer.serialize(opts: {:test => true}).should_not contain(%("Title")) }
-      it { single_serializer.serialize(opts: {:key_transform => :upcase}).should contain(%("TITLE")) }
+      it { single_serializer.serialize(opts: {:key_transform => "upcase"}).should contain(%("TITLE")) }
 
       context "with root key" do
-        it { single_serializer.serialize(opts: {:key_transform => :upcase}).should contain(%("DATA")) }
-        it { single_serializer.serialize(opts: {:key_transform => :upcase}, meta: { :count => 0}).should contain(%("META")) }
+        it { single_serializer.serialize(opts: {:key_transform => "upcase"}).should contain(%("DATA")) }
+        it { single_serializer.serialize(opts: {:key_transform => "upcase"}, meta: { :count => 0}).should contain(%("META")) }
       end
     end
 
@@ -87,7 +87,7 @@ describe Serializer::Base do
 
       context "with opts" do
         it do
-          single_serializer.serialize(meta: {:page => 0}, opts: { :key_transform => :upcase }).should contain(%("PAGE"))
+          single_serializer.serialize(meta: {:page => 0}, opts: { :key_transform => "upcase" }).should contain(%("PAGE"))
         end
       end
     end

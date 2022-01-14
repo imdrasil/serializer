@@ -109,7 +109,8 @@ module Serializer
                 if !except.includes?(:{{name.id}}) {% if props[:if] %} && {{props[:if].id}}(object, opts) {% end %}
                   io << "," if fields_count > 0
                   fields_count += 1
-                  io << "\"{{props[:key].id}}\":" << {{target.id}}.{{name.id}}.to_json
+                  key = key_transform("{{props[:key].id}}", opts)
+                  io << "\"#{key}\":" << {{target.id}}.{{name.id}}.to_json
                 end
               {% end %}
               fields_count
@@ -125,7 +126,8 @@ module Serializer
                 if has_relation?({{name}}, includes)
                   io << "," if fields_count > 0
                   fields_count += 1
-                  io << "\"{{props[:key].id}}\":"
+                  key = key_transform("{{props[:key].id}}", opts)
+                  io << "\"#{key}\":"
                   {{props[:serializer]}}.new(object.{{name.id}})._serialize(object.{{name.id}}, io, [] of Symbol, nested_includes({{name}}, includes), opts)
                 end
                 {% end %}
@@ -157,6 +159,27 @@ module Serializer
 
     def serialize_relations(object, fields_count, io, includes, opts)
       fields_count
+    end
+
+    # :nodoc:
+    def key_transform(string, opts)
+      # not the best code
+      if opts && opts.has_key?(:case)
+        case opts[:case]
+        when :camelcase
+          string.camelcase(lower: true)
+        when :upcase
+          string.upcase
+        when :downcase
+          string.downcase
+        when :underscore
+          string.underscore
+        else
+          string
+        end
+      else
+        string
+      end
     end
 
     # :nodoc:

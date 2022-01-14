@@ -65,6 +65,7 @@ describe Serializer::Base do
 
     context "with options" do
       it { single_serializer.serialize(opts: {:test => true}).should_not contain(%("Title")) }
+      it { single_serializer.serialize(opts: {:case => :upcase}).should contain(%("TITLE")) }
     end
 
     context "with meta" do

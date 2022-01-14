@@ -66,6 +66,11 @@ describe Serializer::Base do
     context "with options" do
       it { single_serializer.serialize(opts: {:test => true}).should_not contain(%("Title")) }
       it { single_serializer.serialize(opts: {:key_transform => :upcase}).should contain(%("TITLE")) }
+
+      context "with root key" do
+        it { single_serializer.serialize(opts: {:key_transform => :upcase}).should contain(%("DATA")) }
+        it { single_serializer.serialize(opts: {:key_transform => :upcase}, meta: { :count => 0}).should contain(%("META")) }
+      end
     end
 
     context "with meta" do
@@ -78,6 +83,12 @@ describe Serializer::Base do
         it { AddressWithMetaSerializer.new(Address.new).serialize.should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":0}}") }
         it { AddressWithMetaSerializer.new(Address.new).serialize(meta: {:total => 0}).should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":0,\"total\":0}}") }
         it { AddressWithMetaSerializer.new(Address.new).serialize(meta: {:page => 3}).should eq("{\"data\":{\"street\":\"some street\"},\"meta\":{\"page\":3}}") }
+      end
+
+      context "with opts" do
+        it do
+          single_serializer.serialize(meta: {:page => 0}, opts: { :key_transform => :upcase }).should contain(%("PAGE"))
+        end
       end
     end
 

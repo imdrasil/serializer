@@ -209,12 +209,17 @@ module Serializer
       io << "{\"" << key << "\":"
       _serialize(@target, io, except, includes, opts)
       default_meta = self.class.meta(opts)
+      metas = {} of String => MetaAny
+      default_meta.each do |k,v|
+        metas[key_transform(k.to_s, opts)] = v
+      end
       unless meta.nil?
         meta.each do |key, value|
-          default_meta[key] = value
+          metas[key_transform(key.to_s, opts)] = value
         end
       end
-      io << %(,"meta":) << default_meta.to_json unless default_meta.empty?
+
+      io << ",\"#{ key_transform("meta", opts)}\":" << metas.to_json unless metas.empty?
       io << "}"
     end
   end

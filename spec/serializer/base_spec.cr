@@ -14,6 +14,12 @@ class ModelWithoutRootSerializer < ModelSerializer
   end
 end
 
+class ModelWithRootSerializer < ModelSerializer
+  def self.root_key
+    "model_with_root" 
+  end
+end
+
 describe Serializer::Base do
   single_serializer = ModelSerializer.new(Model.new)
 
@@ -95,6 +101,16 @@ describe Serializer::Base do
     context "without root" do
       it do
         ModelWithoutRootSerializer.new(Model.new).serialize.should eq("{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12}")
+      end
+
+    end
+
+    context "dynamic root" do
+      context "without default root" do
+        ModelWithoutRootSerializer.new(Model.new).serialize(opts: { :root_key => "model" }).should eq("{\"model\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12}}")
+      end
+      context "with default root" do
+        ModelWithRootSerializer.new(Model.new).serialize(opts: { :root_key => "model" }).should eq("{\"model\":{\"name\":\"test\",\"Title\":\"asd\",\"own_field\":12}}")
       end
     end
   end

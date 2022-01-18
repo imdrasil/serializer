@@ -69,10 +69,11 @@ module Serializer
     #     :children => {:address => nil, :dipper => [:address]},
     #   },
     #   meta: {:page => 0},
-    #   opts: { :key_transform => :camelcase_up }
+    #   opts: { :key_transform => "camelcase_up", :root_key => "people" }
     # )
     # ```
-    # *key_transform* can either be :upcase, :downcase, :underscore, :camelcase_down or :camelcase_up
+    # *key_transform* can either be "upcase", "downcase", "underscore", "camelcase_down" or "camelcase_up"
+    # *root_key* dynamically sets the root key, overriding the default one
     # ## Includes
     #
     # *includes* option accepts `Array` or `Hash` values. To define just a list of association of target object - just pass an array:
@@ -92,7 +93,7 @@ module Serializer
 
     # :nodoc:
     def serialize(io : IO, except = %i(), includes = %i(), opts : Hash? = nil, meta : Hash? = nil)
-      if self.class.root_key.nil?
+      if self.class.root_key.nil? && !(opts && opts.has_key?(:root_key))
         _serialize(@target, io, except, includes, opts)
       else
         render_root(io, except, includes, opts, meta)

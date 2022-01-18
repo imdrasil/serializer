@@ -164,6 +164,7 @@ module Serializer
     # :nodoc:
     def key_transform(string, opts)
       return string if string.nil?
+      string = string.as(String)
       # not the best code
       if opts && opts.has_key?(:key_transform)
         case opts[:key_transform]
@@ -205,7 +206,8 @@ module Serializer
 
     # :nodoc:
     def render_root(io : IO, except : Array, includes : Array | Hash, opts : Hash?, meta)
-      key = key_transform(self.class.root_key, opts)
+      root_key = (opts && opts.has_key?(:root_key)) ? opts[:root_key] : self.class.root_key
+      key = key_transform(root_key, opts)
       io << "{\"" << key << "\":"
       _serialize(@target, io, except, includes, opts)
       default_meta = self.class.meta(opts)

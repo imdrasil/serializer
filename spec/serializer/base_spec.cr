@@ -16,7 +16,7 @@ end
 
 class ModelWithRootSerializer < ModelSerializer
   def self.root_key
-    "model_with_root" 
+    "model_with_root"
   end
 end
 
